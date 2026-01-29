@@ -42,6 +42,7 @@ components_configs:
       score_threshold: 0.5
       nms_threshold: 0.7
       edge_band_buffer_percentage: 0.05
+  - segmenter: default_component/segmenter_sam3.yaml
 ```
 
 where `tilerizer`, `detector`, and `aggregator` are the names of the components, and `default_components/detector_multi_NQOS_best` points to a `[config_subfolder_name]/[component_name]` .yaml config in `canopyrs/config/`.
@@ -68,11 +69,11 @@ python infer.py -c default_detection_multi_NQOS_best -t /path/to/tiles/folder -o
 
 To download and extract datasets automatically and use it with our benchmark or training scripts, we provide a tool.
 
-For example, to download SelvaBox and Detectree2 datasets, you can use the following command:
+For example, to download SelvaMask and Detectree2 datasets, you can use the following command:
 
 ```bash
 python -m tools.detection.download_datasets \
-  -d SelvaBox Detectree2 \
+  -d SelvaMask Detectree2 \
   -o <DATA_ROOT>
 ```
 
