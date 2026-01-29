@@ -1,4 +1,4 @@
-# Selvamask: Anonymous Geospatial Tree Detection Pipeline
+# Selvamask
 
 This repository contains the code for a pipeline designed to process high-resolution geospatial orthomosaics for the detection and segmentation of trees in various forest biomes.
 
@@ -103,25 +103,16 @@ python -m tools.detection.find_optimal_raster_nms --help
 ```
 
 
-### Benchmarking
-To benchmark a model on the test or valid sets of some datasets, you can use the [`benchmark.py`](canopyrs/tools/detection/benchmark.py) tool script.
-
-This script will run the model and evaluate the results using COCO metrics (mAP and mAR).
-
-If you provide `nms_threshold` and `score_threshold` parameters, it will also compute the $RF1_{75}$ metric by running an NMS at the raster level for datasets that have raster-level annotations.
-
-For example, to benchmark the `default_detection_multi_NQOS_best` default model (DINO+Swin L-384 trained on NQOS datasets) on the test set of SelvaBox and Detectree2 datasets,
-you can use the following command (make sure to download the data first, see `Data` section):
+To evaluate a trained model or experiment, use the evaluation script with the desired experiment name and options. For example:
 
 ```bash
-python -m tools.detection.benchmark \
-  -c config/default_detection_multi_NQOS_best/detector.yaml \
-  -d SelvaBox Detectree2 \
-  -r <DATA_ROOT> \
-  -o <OUTPUT_PATH> \
-  --nms_threshold 0.7 \
-  --score_threshold 0.5
+python evaluate.py <EXP_NAME> \
+  --output_path_root /path/to/output_directory \
+  --rf1_eval_iou_threshold "50:95" \
+  --nms_algorithm ioa-disambiguate
 ```
+
+Replace `<EXP_NAME>`, output path, and other arguments as needed for your setup.
 
 By default the evaluation is done on the test set. 
 For more information on parameters, you can use the `--help` flag:
@@ -134,22 +125,15 @@ We provide a `train.py` script to train detector models on preprocessed datasets
 
 Currently, our training pipeline requires [wandb](https://wandb.ai/site) to be installed and configured for logging purposes.
 
-Then, for example, if you want to train a model on the `SelvaBox` and `Detectree2` datasets, you will have to copy a `detector.yaml` config file, for example from [`config/default_detection_multi_NQOS_best`](canopyrs/config/default_detection_multi_NQOS_best/detector.yaml), and modify a few things:
-- `model`: the model type, either `dino_detrex` for detrex-based DINO models or `faster_rcnn_detectron2` for detectron2-based Faster R-CNN models.
-- `architecture`: the model architecture, either `dino-swin/dino_swin_large_384_5scale_36ep.py`, `dino-resnet/dino_r50_4scale_24ep.py` (for DINOs) or `COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml` (for Faster R-CNNs) are currently supported.
-- `checkpoint_path`: path to the pretrained model checkpoint. You can keep the pretrained checkpoint we provide in order to fine tune it, or replace it with one of [detrex](https://detrex.readthedocs.io/en/latest/tutorials/Model_Zoo.html) COCO checkpoints.
-- `data_root_path`: path to your dataset root folder (where the `SelvaBox` and `Detectree2` extracted datasets are, i.e. the <DATA_ROOT> folder in the `Data` section).
-- `train_output_path`: path to the output folder where the model checkpoints and logs will be saved.
-- `wandb_project`: name of the wandb project to log to (make sure to be [logged](https://wandb.ai/site)).
-- `train_dataset_names`: A list of the names of the `location` folders (children of `data_root_path` you defined above) you want to train on. For example, `SelvaBox` has three locations, `brazil_zf2`, `ecuador_tiputini`, and `panama_aguasalud`. You can choose to train on all of them, or only on one or two of them. The same goes for `Detectree2` which has only one location, `malaysia_detectree2`.
-- `valid_dataset_names`: A list of the names of the `location` folders (children of `data_root_path` you defined above) you want to validate on (see above for locations).
+Then, for example, if you want to train a SAM3 segmenter model, you will need to specify the appropriate configuration file, output directory, and data root. For instance:
 
-You can also modify plenty of other parameters such as `batch_size`, `lr`...
-
-Finally, you can run the training script with the following command:
+For example, to train a SAM3 segmenter model, you can run:
 
 ```bash
-python train.py \
-  -m detector \
-  -c config/default_detection_multi_NQOS_best/detector.yaml 
+python train.py -m segmenter \
+  --config canopyrs/config/train_segmenter/segmenter_sam3_3.yaml \
+  -o /path/to/output_directory \
+  -d /path/to/data_root
 ```
+
+Replace the config path, output directory, and data root with your own as needed.
